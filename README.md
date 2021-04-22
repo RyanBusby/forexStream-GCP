@@ -15,10 +15,10 @@ To deploy this to GCP:
 - to create all the necessary tables, use flask_migrate. put the same db info into orm_config, or make all the same environment variables on your local machine and leave orm_config as is, then run the following commands:
 
   ```
-  $ export FLASK_APP=models.py
-  $ flask db init
-  $ flask db migrate
-  $ flask db upgrade
+  forexStream-GCP$ export FLASK_APP=models.py
+  forexStream-GCP$ flask db init
+  forexStream-GCP$ flask db migrate
+  forexStream-GCP$ flask db upgrade
   ```
 
 2. create a compute engine instance in the same project as the PostgreSQL instance.
@@ -47,7 +47,7 @@ To deploy this to GCP:
 - copy these files into the compute engine
 
   ```
-  scp cg_scraper.py config.py market_dicts.py models.py <uname>@<compute IP>:~/scraper
+  forexStream-GCP$ scp cg_scraper.py config.py market_dicts.py models.py <uname>@<compute IP>:~/scraper
   ```
 
 - create a tmux session and run the scraper.
@@ -61,7 +61,7 @@ To deploy this to GCP:
   ```
 
   ```
-  $ python3 cg_scraper.py
+  scraper$ python3 cg_scraper.py
   ```
 
 _add the public ip of the compute engine to the list of accepted connections of the sql instance if there's connection errors_
@@ -71,9 +71,9 @@ _add the public ip of the compute engine to the list of accepted connections of 
 - set glcoud cli config to your project name
 
   ```
-  $ gcloud config set project <your project name>
+  forexStream-GCP$ gcloud config set project <your project name>
   ```
 
   ```
-  $ gcloud app deploy
+  forexStream-GCP$ gcloud app deploy
   ```
