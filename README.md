@@ -28,7 +28,7 @@ To deploy this to GCP:
 - Install python packages:
 
   ```
-  $ pip3 install flask, flask_sqlalchemy, python-dateutil, requests
+  $ pip3 install flask flask_sqlalchemy python-dateutil requests
   ```
 
 - Acquire an API key thru forex.com and put the credentials in ~/.bashrc of the compute engine
