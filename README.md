@@ -64,6 +64,7 @@ To deploy this to GCP:
   $ python3 cg_scraper.py
   ```
 
+_add the public ip of the compute engine to the list of accepted connections of the sql instance if there's connection errors_
 
 3. deploy the application (gcloud sdk required)
 
