@@ -1,0 +1,5 @@
+migrations
+.gcloudignore
+__pycache__
+my_app.yaml
+notes.txt

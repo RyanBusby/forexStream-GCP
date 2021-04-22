@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+  <head>
+
+    <title>
+      {% block title %}
+      {% endblock %}
+    </title>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    {% if 'ohlc' in request.path %}
+
+    <link rel="stylesheet" type="text/css" href="https://code.highcharts.com/css/stocktools/gui.css">
+    <link rel="stylesheet" type="text/css" href="https://code.highcharts.com/css/annotations/popup.css">
+    <script src="https://code.highcharts.com/stock/highstock.js"></script>
+
+    <script src="https://code.highcharts.com/stock/modules/data.js"></script>
+
+    <script src="https://code.highcharts.com/stock/indicators/indicators-all.js"></script>
+    <script src="https://code.highcharts.com/stock/modules/drag-panes.js"></script>
+
+    <script src="https://code.highcharts.com/modules/annotations-advanced.js"></script>
+    <script src="https://code.highcharts.com/modules/price-indicator.js"></script>
+    <script src="https://code.highcharts.com/modules/full-screen.js"></script>
+
+    <script src="https://code.highcharts.com/modules/stock-tools.js"></script>
+    {% endif %}
+
+    <link rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <!-- TOGGLE BUTTON -->
+    <link href="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.1/css/bootstrap4-toggle.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.1/js/bootstrap4-toggle.min.js"></script>
+
+
+    <!-- HIGH CHARTS IMPORTS -->
+    {% if 'ohlc' not in request.path %}
+    <script src="http://code.highcharts.com/highcharts.js"></script>
+    {% endif %}
+    <script src="http://code.highcharts.com/highcharts-more.js"></script>
+    <script src="http://code.highcharts.com/modules/exporting.js"></script>
+    <script src="https://code.highcharts.com/modules/export-data.js"></script>
+    <script src="https://code.highcharts.com/modules/accessibility.js"></script>
+
+    <!-- BOKEH IMPORTS -->
+    <script src="https://cdn.bokeh.org/bokeh/release/bokeh-2.3.0.min.js"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.bokeh.org/bokeh/release/bokeh-widgets-2.3.0.min.js"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.bokeh.org/bokeh/release/bokeh-tables-2.3.0.min.js"
+        crossorigin="anonymous"></script>
+    <style>
+      body {
+          padding-top: 60px;
+        }
+        @media (max-width: 979px) {
+          body {
+            padding-top: 0px;
+          }
+      }
+      .bk-slider-value {
+          font-family: Arial, Helvetica, sans-serif ! important;
+          font-weight: lighter ! important;
+          color: white;
+      }
+    </style>
+
+
+  </head>
+  <body>
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-sm bg-light navbar-dark fixed-top">
+        <a class="navbar-brand"
+          href="{{ url_for( 'index' ) }}">
+          <h1>💱
+            <small class="font-weight-lighter text-dark">FOREX</small>
+          </h1>
+        </a>
+        <ul class="navbar-nav mr-auto">
+
+          <li class="nav-item">
+
+            {% if "stream" in request.path %}
+            <a class="font-weight-lighter text-success nav-link" href="{{ url_for('stream_highcharts') }}">stream</a>
+            {% else %}
+            <a class="font-weight-lighter text-dark nav-link" href="{{ url_for('stream_highcharts') }}">stream</a>
+            {% endif %}
+
+          </li>
+
+          <li class="nav-item">
+
+            {% if 'ohlc' in request.path %}
+            <a class="font-weight-lighter text-success nav-link" href="{{ url_for('ohlc_highcharts') }}">ohlc</a>
+            {% else %}
+            <a class="font-weight-lighter text-dark nav-link" href="{{ url_for('ohlc_highcharts') }}">ohlc</a>
+            {% endif %}
+
+          </li>
+
+          <li class="nav-item">
+
+            {% if 'returns' in request.path %}
+            <a class="font-weight-lighter text-success nav-link" href="{{ url_for('returns_highcharts') }}">returns</a>
+            {% else %}
+            <a class="font-weight-lighter text-dark nav-link" href="{{ url_for('returns_highcharts') }}">returns</a>
+            {% endif %}
+
+          </li>
+
+    </ul>
+
+    <!-- NAV DROPDOWN TOGGLE OHLC OR STREAM ROWS-->
+    <ul class="navbar-nav ml-auto">
+    {% if "stream" in request.path or "ohlc" in request.path %}
+
+          <li class="nav-item dropdown dropleft">
+            <!-- WITHOUT INERT HREF YOU HAVE TO STYLE THE CURSOR -->
+            <a class="nav-link dropdown-toggle font-weight-lighter text-dark" data-toggle="dropdown" href="#">toggle charts</a>
+            <div class="dropdown-menu">
+              {% for cp, title in currency_pairs.items() %}
+                  <a class="dropdown-item font-weight-light py-2" id="toggle_{{ cp }}" href="#">{{ cp.upper() }} ({{ title }})</a>
+              {% endfor %}
+            </div>
+          </li>
+    {% endif %}
+
+
+
+    {% if "highcharts" in request.path %}
+      <li class="pl-4">
+      <input id="switch" class="form-check-input" type="checkbox" data-toggle="toggle" data-on="Highcharts" data-off="Bokeh" data-onstyle="info" data-offstyle="success" checked>
+      </li>
+    {% endif %}
+
+    {% if "bokeh" in request.path %}
+      <ul class="navbar-nav ml-auto">
+      <li class="pl-4">
+      <input id="switch" class="form-check-input" type="checkbox" data-toggle="toggle" data-on="Highcharts" data-off="Bokeh" data-onstyle="info" data-offstyle="success">
+      </li>
+    {% endif %}
+    </ul>
+    </nav>
+
+    <!-- CONTENT -->
+    <main id="content" role="main" class="container-fluid p-4 bg-dark">
+
+    {% block content %}
+    {% endblock %}
+
+    {% if "bokeh" in request.path or "highcharts" in request.path %}
+    <script type="text/javascript">
+      $(function () {
+        $("#switch").change(function() {
+          if (window.location.pathname=='/stream-highcharts') {
+            // load the bokeh page
+            window.location.pathname = 'stream-bokeh';
+
+          } else if (window.location.pathname=='/stream-bokeh') {
+            // load the high charts page
+            window.location.pathname = 'stream-highcharts';
+
+          } else if (window.location.pathname=='/ohlc-bokeh') {
+            // load the high charts page
+            window.location.pathname = 'ohlc-highcharts';
+
+          } else if (window.location.pathname=='/ohlc-highcharts') {
+            // load the high charts page
+            window.location.pathname = 'ohlc-bokeh';
+
+          } else if (window.location.pathname=='/returns-bokeh') {
+            // load the high charts page
+            window.location.pathname = 'returns-highcharts';
+
+          } else if (window.location.pathname=='/returns-highcharts') {
+            // load the high charts page
+            window.location.pathname = 'returns-bokeh';
+
+          }
+        })
+      })
+    </script>
+    {% endif %}
+
+
+    {% if "stream" in request.path or "ohlc" in request.path %}
+    <script>
+
+      // NAV BAR DROPDOWN OPTIONS - TOGGLE VISIBILITY OF EACH ROW
+      {% for cp in currency_pairs.keys() %}
+      $("#toggle_{{ cp }}").click(function(){
+        $("#row_{{ cp }}").toggle('slow');
+        $("#toggle_{{ cp }}").toggleClass("font-weight-lighter");
+      });
+      {% endfor %}
+
+    </script>
+    {% endif %}
+
+    </main>
+  </body>
+</html>

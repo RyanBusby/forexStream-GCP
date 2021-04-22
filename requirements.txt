@@ -1,0 +1,11 @@
+Flask
+Flask-Migrate
+psycopg2==2.8.6
+psycopg2-binary==2.8.6
+ratelimit==2.2.1
+bokeh==2.3.0
+gunicorn==20.1.0
+pandas
+numpy
+Flask-SQLAlchemy
+Flask-WTF

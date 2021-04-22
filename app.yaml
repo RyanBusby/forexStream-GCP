@@ -1,0 +1,15 @@
+runtime: python39
+entrypoint: gunicorn -b :$PORT main:app
+
+env_variables:
+  cg_base: https://ciapi.cityindex.com/TradingAPI
+  cg_api: <api credentials>
+  cg_pword: <api credentials>
+  cg_uname: <api credentials>
+
+  db_conn_name: <gcloud sql instance connection name> # ie) something:us-central1:something
+  db_ip: <gcloud sql instance ip address>
+  db_port: <gcloud sql instance port>
+  db_name: <gcloud sql instance db name>
+  uname: <gcloud sql instance db username>
+  upass: <gcloud sql instance db password>

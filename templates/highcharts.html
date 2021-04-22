@@ -1,0 +1,256 @@
+{% extends 'layouts/main.html' %}
+{% block title %}
+💱 FOREX
+{% endblock %}
+{% block content %}
+<div id="alert" class="alert alert-danger font-weight-light"></div>
+{% for cp in currency_pairs.keys() %}
+
+  <div id="row_{{ cp }}" class="row pl-3 pb-3">
+
+    <div class="col-1  bg-dark card">
+      <div class="row">
+        <div class="card-body bg-light">
+          <p id="current_{{ cp }}" class="card-text text-center font-weight-lighter"></p>
+          <p id="delta_{{ cp }}" class="card-text"></p>
+          <p id="closed_{{ cp }}" class="card-text"></p>
+        </div>
+      </div>
+    <!-- this was a mistake but it ended up working -->
+    <div class="row">
+          <div class="font-weight-lighter text-light text-center">{{ cp.upper() }}
+          </div>
+    </div>
+
+    </div>
+
+    <div id="{{ cp }}"    class="col-11"></div>
+  </div>
+
+{% endfor %}
+
+
+<script type="text/javascript">
+  // HIDE THE ALERT BY DEFAULT
+    $("#alert").hide();
+  // init all charts
+  {% for cp in currency_pairs.keys() %}
+    var chart_{{ cp }};
+  {% endfor %}
+
+
+  var card_class_dict = {
+    true: {
+      "card_class":"card-text text-center font-weight-lighter text-success",
+      "new_color": "green",
+      "arrow": "▲"
+    },
+    false: {
+      "card_class":"card-text text-center font-weight-lighter text-danger",
+      "new_color": "red",
+      "arrow": "▼"
+    }
+  }
+
+
+  function request_data() {
+
+    var requests = $.get('/data/stream-highcharts');
+
+    requests.done(
+      function (result) {
+        if (result.closed) {
+          console.log('market closed')
+          clearInterval(chartdata);
+          $("#alert")
+            .html("Forex Trading is available 24 hours a day from 10:00 PM UTC Sunday to 9:00 PM UTC on Friday. Charts aren\'t live.")
+            .show();
+        }
+
+        {% for cp in currency_pairs.keys() %}
+          var formats = card_class_dict[result.{{ cp }}.increasing];
+            // UPDATE CHART DATA
+            chart_{{ cp }}.series[0].setData(result.{{ cp }}.data);
+
+            // UPDATE CHART PROPERTIES
+            chart_{{ cp }}.series[0].update({
+              color: formats["new_color"],
+              lineColor: formats["new_color"]
+            });
+
+          // UPDATE CARD
+          $('#delta_{{ cp }}')
+            .removeClass()
+            .addClass(
+              formats['card_class']
+            )
+            .html(
+              formats["arrow"].concat(result.{{ cp }}.delta)
+            );
+
+          $('#current_{{ cp }}').html(result.{{ cp }}.last_val);
+
+        {% endfor %}
+      }
+    );
+  }
+
+  request_data();
+  chartdata = setInterval(request_data, 500)
+
+  $(document).ready(
+
+    function(){
+
+      // what tz should view be in?
+      const local_timezone = new Date().getTimezoneOffset()
+      const utc = 0
+
+      const use_tz = utc
+
+      if (use_tz == 0) {
+        var tz_abbrv = "UTC";
+      } else { var tz_abbrv =
+        new Date().toLocaleTimeString(
+          'en-us',
+          {timeZoneName:'short'}).split(' ')[2]
+      };
+      console.log(tz_abbrv)
+
+      Highcharts.setOptions({
+        global: {
+          timezoneOffset: use_tz
+        }
+      }
+    );
+    {% for cp in currency_pairs.keys() %}
+    chart_{{ cp }} = new Highcharts.Chart(
+      {
+        chart: {
+          // height: 230,
+          height:150,
+          backgroundColor: '#f8f9fa',
+          animation: true,
+          renderTo: '{{ cp }}',
+          zoomType: 'x'
+        },
+
+
+        tooltip: {
+          // xDateFormat: '%A, %b %e, %l:%M:%S %P',
+          backgroundColor: '#343a40',
+          borderWidth: 0,
+          style: {
+            color: 'white'
+          }
+        },
+
+        title: {
+          text: undefined
+        },
+
+        xAxis: {
+          title: {
+            enabled: true,
+            text: tz_abbrv,
+          },
+
+          type: 'datetime',
+          labels: {
+            formatter: function() {
+              return Highcharts.dateFormat('%l:%M:%S %P', this.value);
+            },
+            style: {
+              fontSize: 8
+            }
+          }
+        },
+
+        yAxis: {
+          title: {
+            text: undefined,
+          },
+          gridLineColor: 'darkgray',
+          gridLineWidth: .5,
+          labels: {
+            enabled: true,
+            style: {
+              fontSize: 10
+            }
+          }
+        },
+        legend: {
+          enabled: false
+        },
+        plotOptions: {
+          series: {
+            marker: {
+              enabled: false
+            }
+          }
+        },
+        // tooltip: {
+        //     shape: 'square',
+        //     headerShape: 'callout',
+        //     borderWidth: 0,
+        //     shadow: false,
+        //     backgroundColor: '#343a40',
+        //     style: {
+        //       color: 'white'
+        //     },
+        //     positioner: function (width, height, point) {
+        //         var chart = this.chart,
+        //             position;
+        //
+        //         if (point.isHeader) {
+        //             position = {
+        //                 x: Math.max(
+        //                     // Left side limit
+        //                     chart.plotLeft,
+        //                     Math.min(
+        //                         point.plotX + chart.plotLeft - width / 2,
+        //                         // Right side limit
+        //                         chart.chartWidth - width - chart.marginRight
+        //                     )
+        //                 ),
+        //                 y: point.plotY
+        //             };
+        //         } else {
+        //             position = {
+        //                 x: point.series.chart.plotLeft,
+        //                 y: point.series.yAxis.top - chart.plotTop
+        //             };
+        //         }
+        //
+        //         return position;
+        //     }
+        // },
+
+        series: [
+          {
+            lineWidth: 1,
+            name: '{{ cp.upper() }}',
+            allowPointSelect: true,
+            data: [],
+            marker: {
+              enabled: false
+            },
+          }
+        ],
+        responsive: {
+            rules: [{
+                condition: {
+                    maxWidth: 800
+                },
+                chartOptions: {
+                    rangeSelector: {
+                        inputEnabled: false
+                    }
+                }
+            }]
+        }
+      });
+    {% endfor %}
+  });
+</script>
+{% endblock %}
