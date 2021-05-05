@@ -2,8 +2,6 @@
 
 ### Flask, Bootstrap, & HighCharts to display live forex data
 
-[click here to see the app](https://forexstream.uc.r.appspot.com/)
-
 ![](md_files/screenshot.png)
 
 To deploy this to GCP:
